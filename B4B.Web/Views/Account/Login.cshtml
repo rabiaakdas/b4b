@@ -1,0 +1,36 @@
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Giriş";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Giriş</h1>
+
+    @if (!string.IsNullOrWhiteSpace(Model.HataMesaji))
+    {
+        <div class="alert alert-danger">
+            @Model.HataMesaji
+        </div>
+    }
+
+    <form asp-action="Login" method="post" class="col-md-5">
+        <div class="mb-3">
+            <label asp-for="KullaniciAdi" class="form-label"></label>
+            <input asp-for="KullaniciAdi" class="form-control" autocomplete="username" />
+            <span asp-validation-for="KullaniciAdi" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Sifre" class="form-label"></label>
+            <input asp-for="Sifre" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Sifre" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Giriş Yap</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

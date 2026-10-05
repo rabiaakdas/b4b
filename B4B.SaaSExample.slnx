@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="B4B.Api/B4B.Api.csproj" />
+  <Project Path="B4B.Web/B4B.Web.csproj" />
+</Solution>

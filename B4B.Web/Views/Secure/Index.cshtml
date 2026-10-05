@@ -1,0 +1,23 @@
+@model ProtectedPageViewModel
+
+@{
+    ViewData["Title"] = "Hesabım";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Hesabım</h1>
+
+    <dl class="row">
+        <dt class="col-sm-3">Kullanıcı ID</dt>
+        <dd class="col-sm-9">@Model.UserId</dd>
+
+        <dt class="col-sm-3">Firma ID</dt>
+        <dd class="col-sm-9">@Model.FirmaId</dd>
+
+        <dt class="col-sm-3">Kullanıcı Adı</dt>
+        <dd class="col-sm-9">@Model.KullaniciAdi</dd>
+
+        <dt class="col-sm-3">Firma Adı</dt>
+        <dd class="col-sm-9">@Model.FirmaAdi</dd>
+    </dl>
+</div>

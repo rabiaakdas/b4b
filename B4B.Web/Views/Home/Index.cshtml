@@ -1,0 +1,29 @@
+@model FirmaConfigViewModel
+
+@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Ana Sayfa</h1>
+
+    @if (Model.Basarili)
+    {
+        <dl class="row">
+            <dt class="col-sm-3">Firma ID</dt>
+            <dd class="col-sm-9">@Model.FirmaId</dd>
+
+            <dt class="col-sm-3">Firma Adı</dt>
+            <dd class="col-sm-9">@Model.FirmaAdi</dd>
+
+            <dt class="col-sm-3">Config Değeri</dt>
+            <dd class="col-sm-9">@Model.ConfigDegeri</dd>
+        </dl>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            @Model.HataMesaji
+        </div>
+    }
+</div>
