@@ -15,12 +15,17 @@ public class JwtTokenService
         _configuration = configuration;
     }
 
-    public string CreateToken(Kullanici kullanici)
+    public string CreateToken(User user)
     {
         var key = _configuration["Jwt:Key"];
         if (string.IsNullOrWhiteSpace(key))
         {
             throw new InvalidOperationException("Jwt:Key User Secrets içinde tanımlı değil.");
+        }
+
+        if (Encoding.UTF8.GetByteCount(key) < 32)
+        {
+            throw new InvalidOperationException("Jwt:Key en az 32 UTF-8 byte uzunluğunda olmalıdır.");
         }
 
         var issuer = _configuration["Jwt:Issuer"];
@@ -29,12 +34,18 @@ public class JwtTokenService
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, kullanici.Id.ToString()),
-            new Claim(ClaimTypes.Name, kullanici.KullaniciAdi),
-            new Claim("firma_id", kullanici.FirmaId.ToString())
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim("firma_id", user.CompanyId.ToString()),
+            new Claim("is_admin", user.IsAdmin ? "true" : "false")
         };
+
+        if (user.IsAdmin)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+        }
 
         var token = new JwtSecurityToken(
             issuer: issuer,

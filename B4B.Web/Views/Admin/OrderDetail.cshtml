@@ -1,0 +1,55 @@
+@model AdminOrderDetailViewModel
+
+@{
+    ViewData["Title"] = "Sipariş Detayı";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Sipariş Detayı</h1>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-3">Kullanıcı</dt>
+            <dd class="col-sm-9">@Model.Username</dd>
+
+            <dt class="col-sm-3">Sipariş Tarihi</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Toplam Tutar</dt>
+            <dd class="col-sm-9">@Model.TotalAmount.ToString("N2")</dd>
+        </dl>
+
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Ürün Kodu</th>
+                    <th>Ürün Adı</th>
+                    <th class="text-end">Birim Fiyat</th>
+                    <th class="text-end">Miktar</th>
+                    <th class="text-end">Kalem Toplamı</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ProductCode</td>
+                        <td>@item.ProductName</td>
+                        <td class="text-end">@item.UnitPrice.ToString("N2")</td>
+                        <td class="text-end">@item.Quantity</td>
+                        <td class="text-end">@item.LineTotal.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <a class="btn btn-outline-primary" asp-action="Orders">Siparişlere Dön</a>
+    }
+</div>

@@ -2,11 +2,11 @@ namespace B4B.Web.Models;
 
 public class ProtectedPageViewModel
 {
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
-    public int FirmaId { get; set; }
+    public Guid CompanyId { get; set; }
 
-    public string KullaniciAdi { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
 
-    public string FirmaAdi { get; set; } = string.Empty;
+    public string CompanyName { get; set; } = string.Empty;
 }

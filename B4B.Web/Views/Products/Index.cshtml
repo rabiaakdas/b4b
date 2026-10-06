@@ -1,0 +1,63 @@
+@model ProductsViewModel
+
+@{
+    ViewData["Title"] = "Ürünler";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Ürünler</h1>
+
+    <form asp-action="Index" method="get" class="row g-2 mb-4">
+        <div class="col-md-5">
+            <label for="arama" class="form-label">Ürün adı veya kodu</label>
+            <input id="arama" name="arama" value="@Model.Arama" class="form-control" />
+        </div>
+        <div class="col-md-auto d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Ara</button>
+        </div>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+    else if (Model.Products.Count == 0)
+    {
+        <div class="alert alert-info">
+            Ürün bulunamadı.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Ürün Kodu</th>
+                    <th>Ürün Adı</th>
+                    <th class="text-end">Fiyat</th>
+                    <th class="text-end">Sepet</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Model.Products)
+                {
+                    <tr>
+                        <td>@product.ProductCode</td>
+                        <td>@product.ProductName</td>
+                        <td class="text-end">@product.Price.ToString("N2")</td>
+                        <td class="text-end">
+                            <form asp-action="AddToCart" method="post" class="d-inline-flex gap-2 justify-content-end">
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <input type="hidden" name="arama" value="@Model.Arama" />
+                                <input type="number" name="quantity" value="1" min="1" step="1" class="form-control form-control-sm" style="width: 80px;" />
+                                <button type="submit" class="btn btn-sm btn-primary">Sepete Ekle</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

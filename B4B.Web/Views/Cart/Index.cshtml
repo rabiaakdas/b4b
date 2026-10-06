@@ -1,0 +1,73 @@
+@model CartViewModel
+
+@{
+    ViewData["Title"] = "Sepetim";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Sepetim</h1>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="alert alert-info">
+            Sepetiniz boş.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Ürün Kodu</th>
+                    <th>Ürün Adı</th>
+                    <th class="text-end">Birim Fiyat</th>
+                    <th class="text-end">Miktar</th>
+                    <th class="text-end">Kalem Toplamı</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ProductCode</td>
+                        <td>@item.ProductName</td>
+                        <td class="text-end">@item.UnitPrice.ToString("N2")</td>
+                        <td class="text-end">
+                            <form asp-action="UpdateQuantity" method="post" class="d-inline-flex gap-2 justify-content-end">
+                                <input type="hidden" name="itemId" value="@item.Id" />
+                                <input type="number" name="quantity" value="@item.Quantity" min="1" step="1" class="form-control form-control-sm" style="width: 80px;" />
+                                <button type="submit" class="btn btn-sm btn-primary">Güncelle</button>
+                            </form>
+                        </td>
+                        <td class="text-end">@item.LineTotal.ToString("N2")</td>
+                        <td class="text-end">
+                            <form asp-action="DeleteItem" method="post">
+                                <input type="hidden" name="itemId" value="@item.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Çıkar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Genel Toplam</th>
+                    <th class="text-end">@Model.GrandTotal.ToString("N2")</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <form asp-controller="Orders" asp-action="Create" method="post" class="text-end">
+            <button type="submit" class="btn btn-success">Sipariş Ver</button>
+        </form>
+    }
+</div>

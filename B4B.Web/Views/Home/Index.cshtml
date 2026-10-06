@@ -1,4 +1,4 @@
-@model FirmaConfigViewModel
+@model CompanyConfigViewModel
 
 @{
     ViewData["Title"] = "Ana Sayfa";
@@ -7,23 +7,23 @@
 <div class="py-4">
     <h1 class="mb-3">Ana Sayfa</h1>
 
-    @if (Model.Basarili)
+    @if (Model.Success)
     {
         <dl class="row">
             <dt class="col-sm-3">Firma ID</dt>
-            <dd class="col-sm-9">@Model.FirmaId</dd>
+            <dd class="col-sm-9">@Model.CompanyId</dd>
 
             <dt class="col-sm-3">Firma Adı</dt>
-            <dd class="col-sm-9">@Model.FirmaAdi</dd>
+            <dd class="col-sm-9">@Model.CompanyName</dd>
 
             <dt class="col-sm-3">Config Değeri</dt>
-            <dd class="col-sm-9">@Model.ConfigDegeri</dd>
+            <dd class="col-sm-9">@Model.ConfigValue</dd>
         </dl>
     }
     else
     {
         <div class="alert alert-danger">
-            @Model.HataMesaji
+            @Model.ErrorMessage
         </div>
     }
 </div>

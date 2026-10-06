@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 
 namespace B4B.Web.Services;
 
@@ -13,11 +14,11 @@ public class ApiAuthClient
         _httpClient = httpClient;
     }
 
-    public async Task<ApiLoginResult> LoginAsync(string clientHost, string kullaniciAdi, string sifre)
+    public async Task<ApiLoginResult> LoginAsync(string clientHost, string username, string password)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/login");
         request.Headers.Add(ClientHostHeaderName, clientHost);
-        request.Content = JsonContent.Create(new LoginRequestDto(kullaniciAdi, sifre));
+        request.Content = JsonContent.Create(new LoginRequestDto(username, password));
 
         using var response = await _httpClient.SendAsync(request);
         if (response.IsSuccessStatusCode)
@@ -25,11 +26,11 @@ public class ApiAuthClient
             var login = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
             return login is null
                 ? ApiLoginResult.Fail("API boş giriş yanıtı döndü.")
-                : ApiLoginResult.Success(login);
+                : ApiLoginResult.CreateSuccess(login);
         }
 
         var error = await response.Content.ReadFromJsonAsync<ApiErrorDto>();
-        return ApiLoginResult.Fail(error?.Mesaj ?? "Giriş başarısız.");
+        return ApiLoginResult.Fail(error?.Message ?? "Giriş başarısız.");
     }
 
     public async Task<ProtectedUserDto?> GetProtectedUserAsync(string token)
@@ -47,39 +48,45 @@ public class ApiAuthClient
     }
 }
 
-public record LoginRequestDto(string KullaniciAdi, string Sifre);
+public record LoginRequestDto(
+    [property: JsonPropertyName("kullaniciAdi")] string Username,
+    [property: JsonPropertyName("sifre")] string Password);
 
 public record LoginResponseDto(
     string Token,
-    int UserId,
-    int FirmaId,
-    string KullaniciAdi,
-    string FirmaAdi);
+    Guid UserId,
+    [property: JsonPropertyName("firmaId")] Guid CompanyId,
+    [property: JsonPropertyName("kullaniciAdi")] string Username,
+    [property: JsonPropertyName("firmaAdi")] string CompanyName);
 
-public record ProtectedUserDto(int UserId, int FirmaId, string KullaniciAdi);
+public record ProtectedUserDto(
+    Guid UserId,
+    [property: JsonPropertyName("firmaId")] Guid CompanyId,
+    [property: JsonPropertyName("kullaniciAdi")] string Username);
 
 public class ApiLoginResult
 {
-    private ApiLoginResult(bool basarili, LoginResponseDto? login, string? hataMesaji)
+    private ApiLoginResult(bool success, LoginResponseDto? login, string? errorMessage)
     {
-        Basarili = basarili;
+        Success = success;
         Login = login;
-        HataMesaji = hataMesaji;
+        ErrorMessage = errorMessage;
     }
 
-    public bool Basarili { get; }
+    public bool Success { get; }
 
     public LoginResponseDto? Login { get; }
 
-    public string? HataMesaji { get; }
+    public string? ErrorMessage { get; }
 
-    public static ApiLoginResult Success(LoginResponseDto login)
+    public static ApiLoginResult CreateSuccess(LoginResponseDto login)
     {
         return new ApiLoginResult(true, login, null);
     }
 
-    public static ApiLoginResult Fail(string hataMesaji)
+    public static ApiLoginResult Fail(string errorMessage)
     {
-        return new ApiLoginResult(false, null, hataMesaji);
+        return new ApiLoginResult(false, null, errorMessage);
     }
 }
+

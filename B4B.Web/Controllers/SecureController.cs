@@ -38,9 +38,9 @@ public class SecureController : Controller
 
         var clientHost = (HttpContext.Request.Host.Value ?? string.Empty).ToLowerInvariant();
         var configResult = await _apiConfigClient.GetConfigAsync(clientHost);
-        if (!configResult.Basarili ||
+        if (!configResult.Success ||
             configResult.Config is null ||
-            configResult.Config.Id != protectedUser.FirmaId)
+            configResult.Config.Id != protectedUser.CompanyId)
         {
             HttpContext.Session.Remove(JwtSessionKey);
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -50,9 +50,9 @@ public class SecureController : Controller
         return View(new ProtectedPageViewModel
         {
             UserId = protectedUser.UserId,
-            FirmaId = protectedUser.FirmaId,
-            KullaniciAdi = protectedUser.KullaniciAdi,
-            FirmaAdi = User.FindFirst("firma_adi")?.Value ?? string.Empty
+            CompanyId = protectedUser.CompanyId,
+            Username = protectedUser.Username,
+            CompanyName = User.FindFirst("firma_adi")?.Value ?? string.Empty
         });
     }
 }

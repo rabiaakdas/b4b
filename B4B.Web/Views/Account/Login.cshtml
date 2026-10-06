@@ -7,24 +7,24 @@
 <div class="py-4">
     <h1 class="mb-3">Giriş</h1>
 
-    @if (!string.IsNullOrWhiteSpace(Model.HataMesaji))
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
     {
         <div class="alert alert-danger">
-            @Model.HataMesaji
+            @Model.ErrorMessage
         </div>
     }
 
     <form asp-action="Login" method="post" class="col-md-5">
         <div class="mb-3">
-            <label asp-for="KullaniciAdi" class="form-label"></label>
-            <input asp-for="KullaniciAdi" class="form-control" autocomplete="username" />
-            <span asp-validation-for="KullaniciAdi" class="text-danger"></span>
+            <label asp-for="Username" class="form-label"></label>
+            <input asp-for="Username" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Username" class="text-danger"></span>
         </div>
 
         <div class="mb-3">
-            <label asp-for="Sifre" class="form-label"></label>
-            <input asp-for="Sifre" class="form-control" autocomplete="current-password" />
-            <span asp-validation-for="Sifre" class="text-danger"></span>
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
         </div>
 
         <button type="submit" class="btn btn-primary">Giriş Yap</button>

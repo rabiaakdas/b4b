@@ -1,0 +1,47 @@
+@model OrdersViewModel
+
+@{
+    ViewData["Title"] = "Siparişlerim";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Siparişlerim</h1>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    @if (Model.Orders.Count == 0)
+    {
+        <div class="alert alert-info">
+            Henüz siparişiniz yok.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Sipariş Tarihi</th>
+                    <th class="text-end">Toplam Tutar</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model.Orders)
+                {
+                    <tr>
+                        <td>@order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td class="text-end">@order.TotalAmount.ToString("N2")</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Detail" asp-route-id="@order.Id">Detay</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

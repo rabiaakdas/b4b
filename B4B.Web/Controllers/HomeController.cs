@@ -30,11 +30,11 @@ public class HomeController : Controller
 
         if (!allowedHosts.Contains(clientHost, StringComparer.OrdinalIgnoreCase))
         {
-            return View(new FirmaConfigViewModel
+            return View(new CompanyConfigViewModel
             {
                 ClientHost = clientHost,
-                Basarili = false,
-                HataMesaji = $"Bu MVC adresi için izin yok: {clientHost}"
+                Success = false,
+                ErrorMessage = $"Bu MVC adresi için izin yok: {clientHost}"
             });
         }
 
@@ -42,25 +42,25 @@ public class HomeController : Controller
         {
             var result = await _apiConfigClient.GetConfigAsync(clientHost);
 
-            return View(new FirmaConfigViewModel
+            return View(new CompanyConfigViewModel
             {
                 ClientHost = clientHost,
-                Basarili = result.Basarili,
-                FirmaId = result.Config?.Id,
-                FirmaAdi = result.Config?.FirmaAdi,
-                ConfigDegeri = result.Config?.ConfigDegeri,
-                HataMesaji = result.HataMesaji
+                Success = result.Success,
+                CompanyId = result.Config?.Id,
+                CompanyName = result.Config?.CompanyName,
+                ConfigValue = result.Config?.ConfigValue,
+                ErrorMessage = result.ErrorMessage
             });
         }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "API yapılandırma isteği başarısız oldu.");
 
-            return View(new FirmaConfigViewModel
+            return View(new CompanyConfigViewModel
             {
                 ClientHost = clientHost,
-                Basarili = false,
-                HataMesaji = "API'ye ulaşılamadı. API uygulamasının https://localhost:7001 adresinde çalıştığından emin olun."
+                Success = false,
+                ErrorMessage = "API'ye ulaşılamadı. API uygulamasının https://localhost:7001 adresinde çalıştığından emin olun."
             });
         }
     }

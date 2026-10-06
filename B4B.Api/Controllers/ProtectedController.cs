@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,19 +14,24 @@ public class ProtectedController : ControllerBase
     public ActionResult<ProtectedUserResponse> Me()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var firmaId = User.FindFirstValue("firma_id");
-        var kullaniciAdi = User.Identity?.Name;
+        var companyId = User.FindFirstValue("firma_id");
+        var username = User.Identity?.Name;
 
-        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(firmaId))
+        if (!Guid.TryParse(userId, out var parsedUserId) ||
+            !Guid.TryParse(companyId, out var parsedCompanyId))
         {
             return Unauthorized();
         }
 
         return Ok(new ProtectedUserResponse(
-            int.Parse(userId),
-            int.Parse(firmaId),
-            kullaniciAdi ?? string.Empty));
+            parsedUserId,
+            parsedCompanyId,
+            username ?? string.Empty));
     }
 }
 
-public record ProtectedUserResponse(int UserId, int FirmaId, string KullaniciAdi);
+public record ProtectedUserResponse(
+    Guid UserId,
+    [property: JsonPropertyName("firmaId")] Guid CompanyId,
+    [property: JsonPropertyName("kullaniciAdi")] string Username);
+

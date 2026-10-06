@@ -10,39 +10,43 @@ public static class SeedData
     {
         using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var passwordHasher = new PasswordHasher<Kullanici>();
+        var passwordHasher = new PasswordHasher<User>();
 
-        var firmaA = await dbContext.Firmalar.FirstAsync(firma => firma.Domain == "localhost:7101");
-        var firmaB = await dbContext.Firmalar.FirstAsync(firma => firma.Domain == "localhost:7201");
+        var companyA = await dbContext.Companies.FirstAsync(company => company.Domain == "localhost:7101");
+        var companyB = await dbContext.Companies.FirstAsync(company => company.Domain == "localhost:7201");
 
-        await EnsureUserAsync(dbContext, passwordHasher, firmaA.Id, "demo", "FirmaA123!");
-        await EnsureUserAsync(dbContext, passwordHasher, firmaB.Id, "demo", "FirmaB123!");
+        await EnsureUserAsync(dbContext, passwordHasher, companyA.Id, "demo", "FirmaA123!", isAdmin: false);
+        await EnsureUserAsync(dbContext, passwordHasher, companyB.Id, "demo", "FirmaB123!", isAdmin: false);
+        await EnsureUserAsync(dbContext, passwordHasher, companyA.Id, "admin", "AdminA123!", isAdmin: true);
+        await EnsureUserAsync(dbContext, passwordHasher, companyB.Id, "admin", "AdminB123!", isAdmin: true);
 
         await dbContext.SaveChangesAsync();
     }
 
     private static async Task EnsureUserAsync(
         AppDbContext dbContext,
-        PasswordHasher<Kullanici> passwordHasher,
-        int firmaId,
-        string kullaniciAdi,
-        string sifre)
+        PasswordHasher<User> passwordHasher,
+        Guid companyId,
+        string username,
+        string password,
+        bool isAdmin)
     {
-        var exists = await dbContext.Kullanicilar
-            .AnyAsync(kullanici => kullanici.FirmaId == firmaId && kullanici.KullaniciAdi == kullaniciAdi);
+        var exists = await dbContext.Users
+            .AnyAsync(user => user.CompanyId == companyId && user.Username == username);
 
         if (exists)
         {
             return;
         }
 
-        var kullanici = new Kullanici
+        var user = new User
         {
-            FirmaId = firmaId,
-            KullaniciAdi = kullaniciAdi
+            CompanyId = companyId,
+            Username = username,
+            IsAdmin = isAdmin
         };
 
-        kullanici.SifreHash = passwordHasher.HashPassword(kullanici, sifre);
-        dbContext.Kullanicilar.Add(kullanici);
+        user.PasswordHash = passwordHasher.HashPassword(user, password);
+        dbContext.Users.Add(user);
     }
 }

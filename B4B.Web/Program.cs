@@ -3,6 +3,7 @@ using B4B.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var cookieSuffix = builder.Configuration["CookieSuffix"] ?? "Default";
+var adminProfile = string.Equals(cookieSuffix, "Admin", StringComparison.OrdinalIgnoreCase);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -12,6 +13,26 @@ builder.Services.AddHttpClient<ApiConfigClient>(client =>
     client.BaseAddress = new Uri(apiBaseUrl ?? "https://localhost:7001");
 });
 builder.Services.AddHttpClient<ApiAuthClient>(client =>
+{
+    var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"];
+    client.BaseAddress = new Uri(apiBaseUrl ?? "https://localhost:7001");
+});
+builder.Services.AddHttpClient<ApiProductClient>(client =>
+{
+    var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"];
+    client.BaseAddress = new Uri(apiBaseUrl ?? "https://localhost:7001");
+});
+builder.Services.AddHttpClient<ApiCartClient>(client =>
+{
+    var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"];
+    client.BaseAddress = new Uri(apiBaseUrl ?? "https://localhost:7001");
+});
+builder.Services.AddHttpClient<ApiOrderClient>(client =>
+{
+    var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"];
+    client.BaseAddress = new Uri(apiBaseUrl ?? "https://localhost:7001");
+});
+builder.Services.AddHttpClient<ApiAdminClient>(client =>
 {
     var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"];
     client.BaseAddress = new Uri(apiBaseUrl ?? "https://localhost:7001");
@@ -37,9 +58,9 @@ builder.Services
     .AddCookie(options =>
     {
         options.Cookie.Name = $".B4B.Web.{cookieSuffix}.Auth";
-        options.LoginPath = "/Account/Login";
-        options.LogoutPath = "/Account/Logout";
-        options.AccessDeniedPath = "/Account/Login";
+        options.LoginPath = adminProfile ? "/Admin/Login" : "/Account/Login";
+        options.LogoutPath = adminProfile ? "/Admin/Logout" : "/Account/Logout";
+        options.AccessDeniedPath = adminProfile ? "/Admin/Login" : "/Account/Login";
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Cookie.SameSite = SameSiteMode.Lax;
@@ -63,6 +84,11 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
+if (adminProfile)
+{
+    app.MapGet("/", () => Results.Redirect("/Admin"));
+}
 
 app.MapControllerRoute(
     name: "default",

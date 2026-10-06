@@ -1,0 +1,42 @@
+@model AdminLoginViewModel
+
+@{
+    ViewData["Title"] = "Panel Girişi";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Panel Girişi</h1>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <form asp-action="Login" method="post" class="col-md-5">
+        <div class="mb-3">
+            <label asp-for="CompanyCode" class="form-label"></label>
+            <input asp-for="CompanyCode" class="form-control" autocomplete="organization" />
+            <span asp-validation-for="CompanyCode" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Username" class="form-label"></label>
+            <input asp-for="Username" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Giriş Yap</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

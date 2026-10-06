@@ -38,10 +38,10 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var result = await _apiAuthClient.LoginAsync(model.ClientHost, model.KullaniciAdi, model.Sifre);
-        if (!result.Basarili || result.Login is null)
+        var result = await _apiAuthClient.LoginAsync(model.ClientHost, model.Username, model.Password);
+        if (!result.Success || result.Login is null)
         {
-            model.HataMesaji = result.HataMesaji ?? "Giriş başarısız.";
+            model.ErrorMessage = result.ErrorMessage ?? "Giriş başarısız.";
             return View(model);
         }
 
@@ -50,9 +50,9 @@ public class AccountController : Controller
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, result.Login.UserId.ToString()),
-            new(ClaimTypes.Name, result.Login.KullaniciAdi),
-            new("firma_id", result.Login.FirmaId.ToString()),
-            new("firma_adi", result.Login.FirmaAdi)
+            new(ClaimTypes.Name, result.Login.Username),
+            new("firma_id", result.Login.CompanyId.ToString()),
+            new("firma_adi", result.Login.CompanyName)
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

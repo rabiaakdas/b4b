@@ -8,12 +8,12 @@ public class LoginViewModel
 
     [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
     [Display(Name = "Kullanıcı Adı")]
-    public string KullaniciAdi { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Şifre zorunludur.")]
     [Display(Name = "Şifre")]
     [DataType(DataType.Password)]
-    public string Sifre { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
 
-    public string? HataMesaji { get; set; }
+    public string? ErrorMessage { get; set; }
 }

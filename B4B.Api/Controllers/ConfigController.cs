@@ -1,6 +1,7 @@
 using B4B.Api.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace B4B.Api.Controllers;
 
@@ -17,7 +18,7 @@ public class ConfigController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<FirmaConfigResponse>> GetConfig()
+    public async Task<ActionResult<CompanyConfigResponse>> GetConfig()
     {
         var clientHost = Request.Headers[ClientHostHeaderName].FirstOrDefault();
 
@@ -29,25 +30,29 @@ public class ConfigController : ControllerBase
 
         var normalizedHost = clientHost.Trim().ToLowerInvariant();
 
-        var firma = await _dbContext.Firmalar
+        var companyConfig = await _dbContext.Companies
             .AsNoTracking()
-            .Where(firma => firma.Domain.ToLower() == normalizedHost)
-            .Select(firma => new FirmaConfigResponse(
-                firma.Id,
-                firma.FirmaAdi,
-                firma.ConfigDegeri))
+            .Where(company => company.Domain.ToLower() == normalizedHost)
+            .Select(company => new CompanyConfigResponse(
+                company.Id,
+                company.CompanyName,
+                company.ConfigValue))
             .FirstOrDefaultAsync();
 
-        if (firma is null)
+        if (companyConfig is null)
         {
             return NotFound(new ErrorResponse(
                 $"'{normalizedHost}' adresi için kayıtlı firma bulunamadı."));
         }
 
-        return Ok(firma);
+        return Ok(companyConfig);
     }
 }
 
-public record FirmaConfigResponse(int Id, string FirmaAdi, string ConfigDegeri);
+public record CompanyConfigResponse(
+    Guid Id,
+    [property: JsonPropertyName("firmaAdi")] string CompanyName,
+    [property: JsonPropertyName("configDegeri")] string ConfigValue);
 
-public record ErrorResponse(string Mesaj);
+public record ErrorResponse([property: JsonPropertyName("mesaj")] string Message);
+

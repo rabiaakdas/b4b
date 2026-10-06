@@ -1,0 +1,42 @@
+@model AdminUsersViewModel
+
+@{
+    ViewData["Title"] = "Kullanıcılar";
+}
+
+<div class="py-4">
+    <h1 class="mb-3">Kullanıcılar</h1>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+    else if (Model.Users.Count == 0)
+    {
+        <div class="alert alert-info">
+            Kullanıcı bulunamadı.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Kullanıcı Adı</th>
+                    <th>Yetki</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>@user.Username</td>
+                        <td>@(user.IsAdmin ? "Admin" : "Kullanıcı")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

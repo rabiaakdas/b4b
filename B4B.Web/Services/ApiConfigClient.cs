@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 
 namespace B4B.Web.Services;
 
@@ -21,46 +22,50 @@ public class ApiConfigClient
 
         if (response.IsSuccessStatusCode)
         {
-            var config = await response.Content.ReadFromJsonAsync<FirmaConfigDto>();
+            var config = await response.Content.ReadFromJsonAsync<CompanyConfigDto>();
 
             return config is null
                 ? ApiConfigResult.Fail("API boş yapılandırma yanıtı döndü.")
-                : ApiConfigResult.Success(config);
+                : ApiConfigResult.CreateSuccess(config);
         }
 
         var apiError = await response.Content.ReadFromJsonAsync<ApiErrorDto>();
-        var message = apiError?.Mesaj ?? $"API yapılandırma bilgisi dönmedi. HTTP {(int)response.StatusCode}";
+        var message = apiError?.Message ?? $"API yapılandırma bilgisi dönmedi. HTTP {(int)response.StatusCode}";
 
         return ApiConfigResult.Fail(message);
     }
 }
 
-public record FirmaConfigDto(int Id, string FirmaAdi, string ConfigDegeri);
+public record CompanyConfigDto(
+    Guid Id,
+    [property: JsonPropertyName("firmaAdi")] string CompanyName,
+    [property: JsonPropertyName("configDegeri")] string ConfigValue);
 
-public record ApiErrorDto(string Mesaj);
+public record ApiErrorDto([property: JsonPropertyName("mesaj")] string Message);
 
 public class ApiConfigResult
 {
-    private ApiConfigResult(bool basarili, FirmaConfigDto? config, string? hataMesaji)
+    private ApiConfigResult(bool success, CompanyConfigDto? config, string? errorMessage)
     {
-        Basarili = basarili;
+        Success = success;
         Config = config;
-        HataMesaji = hataMesaji;
+        ErrorMessage = errorMessage;
     }
 
-    public bool Basarili { get; }
+    public bool Success { get; }
 
-    public FirmaConfigDto? Config { get; }
+    public CompanyConfigDto? Config { get; }
 
-    public string? HataMesaji { get; }
+    public string? ErrorMessage { get; }
 
-    public static ApiConfigResult Success(FirmaConfigDto config)
+    public static ApiConfigResult CreateSuccess(CompanyConfigDto config)
     {
         return new ApiConfigResult(true, config, null);
     }
 
-    public static ApiConfigResult Fail(string hataMesaji)
+    public static ApiConfigResult Fail(string errorMessage)
     {
-        return new ApiConfigResult(false, null, hataMesaji);
+        return new ApiConfigResult(false, null, errorMessage);
     }
 }
+
