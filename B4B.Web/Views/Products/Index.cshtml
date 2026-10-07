@@ -10,12 +10,24 @@
     <form asp-action="Index" method="get" class="row g-2 mb-4">
         <div class="col-md-5">
             <label for="arama" class="form-label">Ürün adı veya kodu</label>
-            <input id="arama" name="arama" value="@Model.Arama" class="form-control" />
+            <input id="arama" name="arama" value="@Model.Search" class="form-control" />
         </div>
+        <input type="hidden" name="sayfaBoyutu" value="@Model.PageSize" />
         <div class="col-md-auto d-flex align-items-end">
             <button type="submit" class="btn btn-primary">Ara</button>
         </div>
     </form>
+
+    @if (string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="d-flex flex-wrap gap-3 mb-3 text-muted">
+            <span>Toplam eşleşme: @Model.TotalCount.ToString("N0")</span>
+            <span>Sayfa: @Model.Page</span>
+            <span>API süresi: @Model.SearchDurationMilliseconds ms</span>
+            <span>Elasticsearch süresi: @Model.ElasticsearchTookMilliseconds ms</span>
+            <span>Cache: @(Model.CacheStatus ?? "-")</span>
+        </div>
+    }
 
     @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
     {
@@ -50,7 +62,7 @@
                         <td class="text-end">
                             <form asp-action="AddToCart" method="post" class="d-inline-flex gap-2 justify-content-end">
                                 <input type="hidden" name="productId" value="@product.Id" />
-                                <input type="hidden" name="arama" value="@Model.Arama" />
+                                <input type="hidden" name="arama" value="@Model.Search" />
                                 <input type="number" name="quantity" value="1" min="1" step="1" class="form-control form-control-sm" style="width: 80px;" />
                                 <button type="submit" class="btn btn-sm btn-primary">Sepete Ekle</button>
                             </form>
@@ -59,5 +71,16 @@
                 }
             </tbody>
         </table>
+
+        <nav class="d-flex gap-2">
+            @if (Model.HasPreviousPage)
+            {
+                <a class="btn btn-outline-secondary" asp-action="Index" asp-route-arama="@Model.Search" asp-route-sayfa="@(Model.Page - 1)" asp-route-sayfaBoyutu="@Model.PageSize">Önceki</a>
+            }
+            @if (Model.HasNextPage)
+            {
+                <a class="btn btn-outline-secondary" asp-action="Index" asp-route-arama="@Model.Search" asp-route-sayfa="@(Model.Page + 1)" asp-route-sayfaBoyutu="@Model.PageSize">Sonraki</a>
+            }
+        </nav>
     }
 </div>

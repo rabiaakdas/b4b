@@ -1,8 +1,7 @@
 using System.Security.Claims;
-using B4B.Api.Data;
+using B4B.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 namespace B4B.Api.Controllers;
@@ -12,15 +11,18 @@ namespace B4B.Api.Controllers;
 [Route("api/urunler")]
 public class ProductsController : ControllerBase
 {
-    private readonly AppDbContext _dbContext;
+    private readonly ProductSearchService _productSearchService;
 
-    public ProductsController(AppDbContext dbContext)
+    public ProductsController(ProductSearchService productSearchService)
     {
-        _dbContext = dbContext;
+        _productSearchService = productSearchService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ProductResponse>>> GetProducts([FromQuery] string? arama)
+    public async Task<ActionResult<List<ProductResponse>>> GetProducts(
+        [FromQuery(Name = "arama")] string? search,
+        [FromQuery(Name = "sayfa")] int page = 1,
+        [FromQuery(Name = "sayfaBoyutu")] int pageSize = 100)
     {
         var companyIdClaim = User.FindFirstValue("firma_id");
         if (!Guid.TryParse(companyIdClaim, out var companyId))
@@ -28,28 +30,40 @@ public class ProductsController : ControllerBase
             return Unauthorized();
         }
 
-        var query = _dbContext.Products
-            .AsNoTracking()
-            .Where(product => product.CompanyId == companyId);
-
-        if (!string.IsNullOrWhiteSpace(arama))
+        try
         {
-            var normalizedSearch = arama.Trim();
-            query = query.Where(product =>
-                product.ProductName.Contains(normalizedSearch) ||
-                product.ProductCode.Contains(normalizedSearch));
+            var result = await _productSearchService.SearchProductsAsync(
+                companyId,
+                search,
+                page,
+                pageSize,
+                HttpContext.RequestAborted);
+
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            Response.Headers["X-Search-Took-Ms"] = result.ElasticsearchElapsedMilliseconds.ToString();
+            Response.Headers["X-Search-Duration-Ms"] = result.DurationMilliseconds.ToString();
+            Response.Headers["X-Page"] = result.Page.ToString();
+            Response.Headers["X-Page-Size"] = result.PageSize.ToString();
+            Response.Headers["X-Cache"] = result.CacheStatus;
+
+            var products = result.Products
+                .Select(product => new ProductResponse(
+                    product.ProductId,
+                    product.ProductCode,
+                    product.ProductName,
+                    product.Price))
+                .ToList();
+
+            return Ok(products);
         }
-
-        var products = await query
-            .OrderBy(product => product.ProductCode)
-            .Select(product => new ProductResponse(
-                product.Id,
-                product.ProductCode,
-                product.ProductName,
-                product.Price))
-            .ToListAsync();
-
-        return Ok(products);
+        catch (ProductSearchUnavailableException exception)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { Message = exception.Message });
+        }
+        catch (ProductSearchPageTooDeepException exception)
+        {
+            return BadRequest(new { Message = exception.Message });
+        }
     }
 }
 

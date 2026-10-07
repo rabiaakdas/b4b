@@ -30,7 +30,10 @@ public class ProductsController : Controller
     }
 
     [HttpGet("")]
-    public async Task<IActionResult> Index(string? arama)
+    public async Task<IActionResult> Index(
+        [FromQuery(Name = "arama")] string? search,
+        [FromQuery(Name = "sayfa")] int page = 1,
+        [FromQuery(Name = "sayfaBoyutu")] int pageSize = 20)
     {
         var token = HttpContext.Session.GetString(JwtSessionKey);
         if (string.IsNullOrWhiteSpace(token))
@@ -56,18 +59,33 @@ public class ProductsController : Controller
             return RedirectToAction("Login", "Account");
         }
 
-        var products = await _apiProductClient.GetProductsAsync(token, arama);
-        if (products is null)
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var productResult = await _apiProductClient.GetProductsAsync(token, search, page, pageSize);
+        if (productResult.Unauthorized)
         {
             await SignOutAndClearSessionAsync();
             return RedirectToAction("Login", "Account");
         }
 
+        var errorMessage = TempData["SepetHataMesaji"] as string;
+        if (!productResult.Success)
+        {
+            errorMessage = productResult.ErrorMessage;
+        }
+
         return View(new ProductsViewModel
         {
-            Arama = arama,
-            ErrorMessage = TempData["SepetHataMesaji"] as string,
-            Products = products
+            Search = search,
+            Page = productResult.Page == 0 ? page : productResult.Page,
+            PageSize = productResult.PageSize == 0 ? pageSize : productResult.PageSize,
+            TotalCount = productResult.TotalCount,
+            ElasticsearchTookMilliseconds = productResult.ElasticsearchTookMilliseconds,
+            SearchDurationMilliseconds = productResult.SearchDurationMilliseconds,
+            CacheStatus = productResult.CacheStatus,
+            ErrorMessage = errorMessage,
+            Products = productResult.Products
                 .Select(product => new ProductViewModel
                 {
                     Id = product.Id,
@@ -82,7 +100,7 @@ public class ProductsController : Controller
     [HttpPost]
     [Route("SepeteEkle")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddToCart(Guid productId, int quantity, string? arama)
+    public async Task<IActionResult> AddToCart(Guid productId, int quantity, [FromForm(Name = "arama")] string? search)
     {
         var token = await GetValidTokenOrSignOutAsync();
         if (token is null)
@@ -94,7 +112,7 @@ public class ProductsController : Controller
         if (!result.Success)
         {
             TempData["SepetHataMesaji"] = result.ErrorMessage;
-            return RedirectToAction("Index", new { arama });
+            return RedirectToAction("Index", new { arama = search });
         }
 
         return RedirectToAction("Index", "Cart");
